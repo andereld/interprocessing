@@ -1,5 +1,0 @@
-i4.01	3.1	$SCORELEN "inlevel"
-i4.02	3.1	$SCORELEN "freq"
-i4.03	3.1	$SCORELEN "filt_fq"
-i4.04	3.1	$SCORELEN "feedback"
-i4.05	3.1	$SCORELEN "mix"

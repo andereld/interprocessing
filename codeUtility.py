@@ -161,6 +161,23 @@ for i in range(len(parameters)):
 chn_init_file.write(instr_template.format(parameter_ranges))
 
 #
+
+chn_init_file = open(effectname+'_parameters_offline.inc', 'w')
+instr_template = '''
+        instr 91
+; min, max and defaults for the mappable parameters
+{}                        
+        endin
+'''
+parameter_ranges = ''
+for i in range(len(parameters)):
+    parm = parameters[i]
+    parameter_ranges += '   chnset {}, "{}_min" \n'.format(parm[1][0], parm[0])
+    parameter_ranges += '   chnset {}, "{}_max" \n'.format(parm[1][1], parm[0])
+    parameter_ranges += '   chnset {}, "offset_{}" \n'.format(parm[1][2], parm[0])
+chn_init_file.write(instr_template.format(parameter_ranges))
+
+#
 start_x_pos = 30
 start_y_pos = 5
 plant_height = 85
