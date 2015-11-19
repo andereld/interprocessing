@@ -1,23 +1,7 @@
-;    Copyright 2015 Oeyvind Brandtsegg 
-;
-;    This file is part of the Signal Interaction Toolkit
-;
-;    The Signal Interaction Toolkit is free software: you can redistribute it and/or modify
-;    it under the terms of the GNU General Public License version 3 
-;    as published by the Free Software Foundation.
-;
-;    The Signal Interaction Toolkit is distributed in the hope that it will be useful,
-;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;    GNU General Public License for more details.
-;
-;    You should have received a copy of the GNU General Public License
-;    along with The Signal Interaction Toolkit.  
-;    If not, see <http://www.gnu.org/licenses/>.
 <CsoundSynthesizer>
 
 <CsOptions>
--otest.wav
+-odac
 </CsOptions>
 
 <CsInstruments>
@@ -44,7 +28,8 @@
 	instr 2
 	Sfile           strget p4
 	isource_chan     = p5           
-	a1	        soundin Sfile
+	al,ar		soundin Sfile
+	a1	        = (0.5 * al) + (0.5 * ar)
 
 #include "analyze_audio.inc"
 #include "analyze_chnset.inc"
@@ -79,18 +64,9 @@
 </CsInstruments>
 
 <CsScore>
-#define SCORELEN #20#
-i1	0.1	1						              ; init analysis parameters
-i2	4	$SCORELEN	"StruglKor2mono.wav"	1	"control.csv" ; run analysis
-
-; assign analysis signals to efx parameters (as if from gui)
-i 21	3.5	0.1	"source1_Gain"	"rms"
-i 22	3.5	0.1	"chan1_Gain"	1
-i 22	3.5	0.1	"scale1_Gain"	1
-
-#include "amplitude_tracker_score_events.inc"
-i100	0.1	1		                 ; init parameter ranges and defaults
-i101	4	$SCORELEN	"WhiteNoise.wav" ; effect
+#define SCORELEN #2#
+i1	0.1	1						     ; init analysis parameters
+i2	1	$SCORELEN	"test.wav"	1	"result.csv" ; run analysis
 
 e
 </CsScore>
