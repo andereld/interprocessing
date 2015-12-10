@@ -1,7 +1,7 @@
 <CsoundSynthesizer>
 
 <CsOptions>
--odac
+-oaudio_output/dummy.wav
 </CsOptions>
 
 <CsInstruments>
@@ -19,28 +19,27 @@
 
 ;**************************
 ; analyze
-#include "analyze_udos.inc"
+#include "includes/analyze_udos.inc"
 
 	instr 1
-#include "analyze_chn_init.inc"
+#include "includes/analyze_chn_init.inc"
 	endin
 
 	instr 2
 	Sfile           strget p4
 	isource_chan     = p5           
-	al,ar		soundin Sfile
-	a1	        = (0.5 * al) + (0.5 * ar)
+	a1		soundin Sfile
 
-#include "analyze_audio.inc"
-#include "analyze_chnset.inc"
+#include "includes/analyze_audio.inc"
+#include "includes/analyze_chnset.inc"
 
 	Soutput		strget p6 ; Output CSV to this filename.
-#include "analyze_print_to_file.inc"
+#include "includes/analyze_print_to_file.inc"
 	endin
 
 ;**************************
 ; subscribe to control channels (instr 4 to 8)
-#include "subscriber_offline.inc"
+#include "includes/subscriber_offline.inc"
 
 ;**************************
 ; set chn values (as if from gui)
@@ -58,15 +57,16 @@
 
 ;**************************
 ; process audio
-#include "amplitude_tracker_offline.inc"
-#include "amplitude_tracker_parameters_offline.inc"
+#include "includes/amplitude_tracker_offline.inc"
+#include "includes/amplitude_tracker_parameters_offline.inc"
 
 </CsInstruments>
 
 <CsScore>
-#define SCORELEN #2#
-i1	0.1	1						     ; init analysis parameters
-i2	1	$SCORELEN	"test.wav"	1	"result.csv" ; run analysis
+#define SCORELEN #20#
+i1	0.1	1		                                                                        ; init analysis parameters
+i2	4	$SCORELEN	"audio_input/WhiteNoise.wav"	1	"../analysis_output/source.csv" ; run analysis
+i2	4	$SCORELEN	"audio_output/result.wav"	1	"../analysis_output/result.csv" ; run analysis
 
 e
 </CsScore>

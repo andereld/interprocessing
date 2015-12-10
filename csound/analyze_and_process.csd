@@ -17,7 +17,7 @@
 <CsoundSynthesizer>
 
 <CsOptions>
--otest.wav
+-oaudio_output/test.wav
 </CsOptions>
 
 <CsInstruments>
@@ -35,10 +35,10 @@
 
 ;**************************
 ; analyze
-#include "analyze_udos.inc"
+#include "includes/analyze_udos.inc"
 
 	instr 1
-#include "analyze_chn_init.inc"
+#include "includes/analyze_chn_init.inc"
 	endin
 
 	instr 2
@@ -46,16 +46,16 @@
 	isource_chan     = p5           
 	a1	        soundin Sfile
 
-#include "analyze_audio.inc"
-#include "analyze_chnset.inc"
+#include "includes/analyze_audio.inc"
+#include "includes/analyze_chnset.inc"
 
 	Soutput		strget p6 ; Output CSV to this filename.
-#include "analyze_print_to_file.inc"
+#include "includes/analyze_print_to_file.inc"
 	endin
 
 ;**************************
 ; subscribe to control channels (instr 4 to 8)
-#include "subscriber_offline.inc"
+#include "includes/subscriber_offline.inc"
 
 ;**************************
 ; set chn values (as if from gui)
@@ -73,24 +73,24 @@
 
 ;**************************
 ; process audio
-#include "amplitude_tracker_offline.inc"
-#include "amplitude_tracker_parameters_offline.inc"
+#include "includes/amplitude_tracker_offline.inc"
+#include "includes/amplitude_tracker_parameters_offline.inc"
 
 </CsInstruments>
 
 <CsScore>
 #define SCORELEN #20#
-i1	0.1	1						              ; init analysis parameters
-i2	4	$SCORELEN	"StruglKor2mono.wav"	1	"control.csv" ; run analysis
+i1	0.1		1			                                                                         ; init analysis parameters
+i2	4		$SCORELEN	"audio_input/StruglKor2mono.wav"	1	"../analysis_output/control.csv" ; run analysis
 
 ; assign analysis signals to efx parameters (as if from gui)
 i 21	3.5	0.1	"source1_Gain"	"rms"
 i 22	3.5	0.1	"chan1_Gain"	1
 i 22	3.5	0.1	"scale1_Gain"	1
 
-#include "amplitude_tracker_score_events.inc"
+#include "includes/amplitude_tracker_score_events.inc"
 i100	0.1	1		                 ; init parameter ranges and defaults
-i101	4	$SCORELEN	"WhiteNoise.wav" ; effect
+i101	4	$SCORELEN	"audio_input/WhiteNoise.wav" ; effect
 
 e
 </CsScore>
