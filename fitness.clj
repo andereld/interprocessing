@@ -1,3 +1,5 @@
+(ns interprocessing.fitness)
+
 (defn transpose [matrix]
   (apply mapv vector matrix))
 

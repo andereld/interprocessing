@@ -29,6 +29,6 @@
 	aMod            oscil3 0.5, kRateLow+kRateHigh, giSine
 	aMod            = (aMod+0.5)*kDepth
 	aTrm            = a1*aMod
+			fout "audio_output/result.wav", 10, aTrm
 			outs aTrm, aTrm
-
 	endin
