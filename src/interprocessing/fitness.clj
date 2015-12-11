@@ -14,11 +14,6 @@
         data (map strings->doubles (transpose (rest rows)))]
     (zipmap column-headers data)))
 
-(defn drop-leading-silence [table]
-  (let [silent-rows (count (take-while zero? (:rms1 table)))]
-    (into table (for [k (keys table)]
-                  {k (drop silent-rows (k table))}))))
-
 (defn difference [pairs]
   (reduce (fn [acc pair]
             (+ acc (Math/abs (apply - pair))))

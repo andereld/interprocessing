@@ -5,9 +5,7 @@
             [interprocessing.csound-wrapper :as csound]
             [interprocessing.fitness :as fitness]))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
+(defn -main [& args]
   (let [source (io/resource "analysis_output/source.csv")
         control (io/resource "analysis_output/control.csv")
         result (io/resource "analysis_output/result.csv")]
