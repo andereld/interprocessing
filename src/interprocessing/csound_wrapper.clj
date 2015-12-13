@@ -1,10 +1,11 @@
 (ns interprocessing.csound-wrapper
-  "Functions for reading data from existing Csound source files, and for
-  creating new ones. There are a number of hardcoded constants as avoiding this
-  would necessitate rewriting much of the existing code base, most likely in
-  painful ways."
+  "Functions for reading data from existing Csound source files from the
+  interprocessing project, and for creating new ones. There are a number of
+  hardcoded constants as avoiding this would necessitate rewriting much of the
+  existing (Csound) code base, most likely in painful ways."
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [interprocessing.util :refer :all]))
 
 (def modulation-sources ["rms" "rms_preEq" "cps" "pitch" "centroid" "spread"
                          "skewness" "kurtosis" "flatness" "crest" "flux"
@@ -22,10 +23,14 @@
   from a given init file."
   [file]
   (let [contents (slurp file)
-        instr-id (second (re-find #"instr (\d+)" contents))
+        init-instr-id (second (re-find #"instr (\d+)" contents))
         params (mapv second (re-seq #"(\w+)_min\"" contents))]
-    {:instr-id instr-id
+    {:init-instr-id init-instr-id
      :params params}))
+
+(defn instr-id-from-file [file]
+  (let [contents (slurp file)]
+    (second (re-find #"instr (\d+)" contents))))
 
 (defn get-instruments
   "Returns a list of instruments located in the given directory.
@@ -37,25 +42,38 @@
                 instr-name (second (re-find #"(\w+)_parameters_offline.inc"
                                             init-filename))
                 instr-filename (str instr-name "_offline.inc")
+                instr-id (instr-id-from-file (io/file dir instr-filename))
                 attributes (parse-init-file init-file)]
             (into {:name instr-name
                    :init-file init-filename
+                   :instr-id instr-id
                    :instr-file instr-filename}
                   attributes)))
         (init-files dir)))
+
+(defn get-instrument
+  "Returns the instrument with the given name if it is present in dir,
+  else nil."
+  [instrument-name dir]
+  (let [instruments (get-instruments dir)]
+    (find-by-key-value-pair instruments :name instrument-name)))
 
 ;;; In the following helper functions, instrument numbers, start and duration
 ;;; times as well as channel prefixes are hardcoded to match the contents of
 ;;; analyze_and_process.csd.
 
+(defn new-include-file [filename]
+  (let [resources (io/file (io/resource "csound/includes"))]
+    (io/file resources filename)))
+
 (defn source-str [param mod-source]
-  (str "i 21\t3.5\t0.1\t\"source1_" param "\"\t\"" mod-source \"))
+  (str "i 21\t3.5\t0.1\t\"source1_" param "\"\t\"" mod-source \" \newline))
 
 (defn chan-str [param chan]
-  (str "i 22\t3.5\t0.1\t\"chan1_" param "\"\t" chan))
+  (str "i 22\t3.5\t0.1\t\"chan1_" param "\"\t" chan \newline))
 
 (defn scale-str [param scale]
-  (str "i 22\t3.5\t0.1\t\"scale1_" param "\"\t" scale))
+  (str "i 22\t3.5\t0.1\t\"scale1_" param "\"\t" scale \newline))
 
 (defn interconnect
   "Takes an instrument parameter, a modulation source, a communications channel
@@ -65,12 +83,22 @@
   (let [source (source-str param mod-source)
         chan (chan-str param chan)
         scale (scale-str param scale)]
-    (str/join "\n" [source chan scale])))
+    (str/join [source chan scale])))
 
-;(defn write
+(defn write-interconnections-to-include-file!
+  "Writes the appropriate score events to connect the modulation source to the
+  effect instrument to the file resources/csound/includes/interconnections.inc.
+  This file is included by analyze_and_process.csd."
+  ([param mod-source chan scale]
+   (write-interconnections-to-include-file! [[param mod-source chan scale]]))
+
+  ([interconnections]
+   (let [file (new-include-file "interconnections.inc")
+         contents (str/join (map #(apply interconnect %) interconnections))]
+     (spit file contents))))
 
 (defn include-str [filename]
-  (str "#include \"" filename \"))
+  (str "#include \"includes/" filename \" \newline))
 
 (defn include-instruments
   "Takes a list of instruments and returns the necessary Csound code to include
@@ -79,5 +107,89 @@
   (let [include-strs (for [instr-name instrument-names
                            :let [init (str instr-name "_parameters_offline.inc")
                                  instr (str instr-name "_offline.inc")]]
-                       (str/join "\n" [(include-str init) (include-str instr)]))]
-    (str/join "\n" include-strs)))
+                       (str/join [(include-str init) (include-str instr)]))]
+    (str/join include-strs)))
+
+(derive java.util.Collection ::collection)
+
+(defmulti write-instrument-includes-to-include-file!
+  "Writes the appropriate Csound #include statements to the file
+  resources/csound/includes/instrument_includes.inc. This file is,
+  in turn, included by analyze_and_process.csd."
+  class)
+
+(defmethod write-instrument-includes-to-include-file! String
+  [instrument-name]
+  (write-instrument-includes-to-include-file! [instrument-name]))
+
+(defmethod write-instrument-includes-to-include-file! ::collection
+  [instrument-names]
+  (let [file (new-include-file "instrument_includes.inc")
+        contents (include-instruments instrument-names)]
+    (spit file (str contents))))
+
+(defn include-instrument-score-events-str [instrument]
+  (str "#include \"includes/" instrument "_score_events.inc\"" \newline))
+
+(defmulti write-instrument-score-events-to-include-file!
+  "Writes the appropriate Csound #include statements to the file
+  resources/csound/includes/instrument_score_events.inc. This file is,
+  in turn, included by analyze_and_process.csd."
+  class)
+
+(defmethod write-instrument-score-events-to-include-file! String
+  [instrument]
+  (let [file (new-include-file "instrument_score_events.inc")
+        contents (include-instrument-score-events-str instrument)]
+    (spit file contents)))
+
+(defmethod write-instrument-score-events-to-include-file! ::collection
+  [instruments]
+  (let [file (new-include-file "instrument_score_events.inc")
+        contents (str/join
+                   (map include-instrument-score-events-str instruments))]
+    (spit file contents)))
+
+(defn include-audio-analysis-str [input output]
+  (str "i2\t4\t$SCORELEN\t\"" input "\"\t1\t\"" output \" \newline))
+
+(defn write-affector-analysis-to-include-file!
+  "Writes the appropriate score event for analyzing the affector audio file
+  to resources/csound/includes/analyze_affector.inc. This file is included
+  by analyze_and_process.csd."
+  [affector]
+  (let [file (new-include-file "analyze_affector.inc")
+        contents (include-audio-analysis-str
+                   affector "../analysis_output/affector.csv")]
+    (spit file contents)))
+
+(defn write-affected-analysis-to-include-file!
+  "Writes the appropriate score event for analyzing the affected audio file
+  to resources/csound/includes/analyze_affected.inc. This file is included
+  by analyze_results.csd."
+  [affected]
+  (let [file (new-include-file "analyze_affected.inc")
+        contents (include-audio-analysis-str
+                   affected "../analysis_output/affected.csv")]
+    (spit file contents)))
+
+(defn write-result-analysis-to-include-file!
+  "Writes the appropriate score event for analyzing the processed result
+  to resources/csound/includes/analyze_result.inc. This file is included
+  by analyze_results.csd."
+  [result]
+  (let [file (new-include-file "analyze_result.inc")
+        contents (include-audio-analysis-str
+                   result "../analysis_output/result.csv")]
+    (spit file contents)))
+
+(defn run-effect-str [effect-instr input]
+  (str/join
+    [(str "i " (:init-instr-id effect-instr) "\t0.1\t1" \newline)
+     (str "i " (:instr-id effect-instr) "\t4\t$SCORELEN\t\"" input \"
+          \newline)]))
+
+(defn write-effect-score-events-to-include-file! [effect input-file]
+  (let [file (new-include-file "effect_score_events.inc")
+        contents (run-effect-str effect input-file)]
+    (spit file contents)))

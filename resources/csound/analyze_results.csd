@@ -65,8 +65,8 @@
 <CsScore>
 #define SCORELEN #20#
 i1	0.1	1		                                                                        ; init analysis parameters
-i2	4	$SCORELEN	"audio_input/WhiteNoise.wav"	1	"../analysis_output/source.csv" ; run analysis
-i2	4	$SCORELEN	"audio_output/result.wav"	1	"../analysis_output/result.csv" ; run analysis
+#include "includes/analyze_affected.inc"
+#include "includes/analyze_result.inc"
 
 e
 </CsScore>

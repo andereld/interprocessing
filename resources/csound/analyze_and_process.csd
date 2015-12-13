@@ -73,33 +73,19 @@
 
 ;**************************
 ; process audio
-#include "includes/amplitude_tracker_offline.inc"
-#include "includes/amplitude_tracker_parameters_offline.inc"
-#include "includes/tremolam_offline.inc"
-#include "includes/tremolam_parameters_offline.inc"
+#include "includes/instrument_includes.inc"
 
 </CsInstruments>
 
 <CsScore>
 #define SCORELEN #20#
 i1	0.1		1			                                                                         ; init analysis parameters
-i2	4		$SCORELEN	"audio_input/StruglKor2mono.wav"	1	"../analysis_output/control.csv" ; run analysis
+#include "includes/analyze_affector.inc"
 
 ; assign analysis signals to efx parameters (as if from gui)
-i 21	3.5	0.1	"source1_RateLow"	"rms"
-i 22	3.5	0.1	"chan1_RateLow"	1
-i 22	3.5	0.1	"scale1_RateLow"	1.0
-i 21	3.5	0.1	"source1_RateHigh"	"rms"
-i 22	3.5	0.1	"chan1_RateHigh"	1
-i 22	3.5	0.1	"scale1_RateHigh"	1.0
-i 21	3.5	0.1	"source1_Depth"		"rms"
-i 22	3.5	0.1	"chan1_Depth"		1
-i 22	3.5	0.1	"scale1_Depth"		1.0
-
-#include "includes/amplitude_tracker_score_events.inc"
-#include "includes/tremolam_score_events.inc"
-i91	0.1	1		                             ; init parameter ranges and defaults
-i99	4	$SCORELEN	"audio_input/WhiteNoise.wav" ; effect
+#include "includes/interconnections.inc"
+#include "includes/instrument_score_events.inc"
+#include "includes/effect_score_events.inc"
 
 e
 </CsScore>
