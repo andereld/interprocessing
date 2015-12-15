@@ -6,10 +6,8 @@
             (+ acc (Math/abs (apply - pair))))
           0 pairs))
 
-(defn rms-difference [control-file result-file]
-  (let [control (read-csv-file control-file)
-        result (read-csv-file result-file)
-        rms-values (map vector (:rms1 control) (:rms1 result))]
+(defn rms-difference [control result]
+  (let [rms-values (map vector (:rms1 control) (:rms1 result))]
     (difference rms-values)))
 
 (defn parameter-differences [control-file result-file]
