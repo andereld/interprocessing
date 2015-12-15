@@ -50,7 +50,16 @@
   (comp vec (partial repeatedly size rand)))
 
 (defn mutate [individual]
-  (assoc individual (rand-int (count individual)) (rand)))
+  (let [index (rand-int (count individual))
+        original-value (nth individual index)
+        add? (< (rand) 0.5)
+        diff (rand (/ original-value 2.0))
+        new-value (-> (if add?
+                        (+ original-value diff)
+                        (- original-value diff))
+                      (max 0)
+                      (min 1))]
+  (assoc individual index new-value)))
 
 (defn crossover [i1 i2]
   (let [crossover-point (rand-int (count i1))]
