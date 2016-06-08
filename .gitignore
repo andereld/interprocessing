@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+output/*
+!output/.gitkeep
+
+/target
+/classes
+/checkouts
+*.class
+/.lein-*
+/.nrepl-port
