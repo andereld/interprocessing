@@ -1,7 +1,7 @@
 # interprocessing
 
 This code was written for my master's thesis. For a description of the problem
-the problem it solves, please see the [report][1].
+it solves, please see the [report][1].
 
 To run the program, you need to have Csound and Java installed. There is a
 packaged JAR file available in this repository. The program takes a number of
@@ -29,4 +29,4 @@ java -jar interprocessing-1.0-standalone.jar --help
                                                       negative numbers and must contain at least one value greater than zero.
 ```
 
-[1]: #
+[1]: http://hdl.handle.net/11250/2453251
